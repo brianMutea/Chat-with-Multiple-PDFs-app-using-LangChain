@@ -5,7 +5,7 @@ import tiktoken
 from pypdf import PdfReader
 from langchain.document_loaders import PyPDFLoader, UnstructuredPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.llms import OpenAI, DeepSparse
 from langchain.memory import ConversationBufferMemory
@@ -45,47 +45,49 @@ def get_text_chunks(text):
 
 
 def get_vectorstore(text_chunks):
-    embeddings = HuggingFaceEmbeddings(model_kwargs={'device': 'cpu'})
+    # embeddings = HuggingFaceEmbeddings(model_kwargs={'device': 'cpu'})
+    embeddings = HuggingFaceInstructEmbeddings(
+        model_name="hkunlp/instructor-large")
     vector_store = FAISS.from_texts(
         texts=text_chunks, embedding=embeddings)  # db
 
     return vector_store
 
 
-def load_llm():
-    model_id = 'Deci/DeciLM-6b'
+# def load_llm():
+#     model_id = 'Deci/DeciLM-6b'
 
-    model = AutoModelForCausalLM.from_pretrained(model_id,
-                                                 trust_remote_code=True
-                                                 )
-    llm = DeepSparse(
-        model=model,
-        model_config={"sequence_length": 1000, "trust_remote_code": True},
-        generation_config={"max_new_tokens": 300}
-    )
+#     model = AutoModelForCausalLM.from_pretrained(model_id,
+#                                                  trust_remote_code=True
+#                                                  )
+#     llm = DeepSparse(
+#         model=model,
+#         model_config={"sequence_length": 1000, "trust_remote_code": True},
+#         generation_config={"max_new_tokens": 300}
+#     )
 
-    return llm
+#     return llm
 
 
 def get_conversation_chain(vectorstore):
     memory = ConversationBufferMemory(
         memory_key="chat_history", return_messages=True)
 
-    # llm = OpenAI(temperature=0.7)
+    llm = OpenAI(temperature=0.7)
 
-    # conversation_chain = ConversationalRetrievalChain.from_llm(
-    #     llm=llm,
-    #     retriever=vectorstore.as_retriever(),
-    #     memory=memory)
+    conversation_chain = ConversationalRetrievalChain.from_llm(
+        llm=llm,
+        retriever=vectorstore.as_retriever(),
+        memory=memory)
 
-    # return conversation_chain
+    return conversation_chain
 
-    llm = load_llm()
+    # llm = load_llm()
 
-    qa_chain = RetrievalQA.from_chain_type(llm=llm,
-                                           chain_type="stuff",
-                                           retriever=vectorstore.as_retriever())
-    return qa_chain
+    # qa_chain = RetrievalQA.from_chain_type(llm=llm,
+    #                                        chain_type="stuff",
+    #                                        retriever=vectorstore.as_retriever())
+    # return qa_chain
 
 
 def handle_userQuery(user_question):
