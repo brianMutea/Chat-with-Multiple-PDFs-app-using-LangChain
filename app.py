@@ -7,7 +7,7 @@ from langchain.document_loaders import PyPDFLoader, UnstructuredPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings, HuggingFaceInstructEmbeddings
 from langchain.vectorstores import FAISS
-from langchain.llms import OpenAI, DeepSparse
+from langchain.llms import OpenAI, DeepSparse, HuggingFaceHub
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain, RetrievalQA
 
@@ -73,7 +73,9 @@ def get_conversation_chain(vectorstore):
     memory = ConversationBufferMemory(
         memory_key="chat_history", return_messages=True)
 
-    llm = OpenAI(temperature=0.7)
+    model_id = "google/flan-t5-base"
+    llm = HuggingFaceHub(
+        repo_id=model_id, model_kwargs={"temperature": 0.5, "max_length": 64})
 
     conversation_chain = ConversationalRetrievalChain.from_llm(
         llm=llm,
