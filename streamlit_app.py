@@ -72,7 +72,7 @@ def load_llm():
                     tokenizer=tokenizer,
                     temperature=0.1,
                     return_full_text = True, 
-                    max_new_tokens=50,
+                    max_new_tokens=40,
                     repetition_penalty =  1.1)
     
     llm = HuggingFacePipeline(pipeline=pipe)
@@ -147,7 +147,7 @@ def main():
                 creat_vector_db(pdfs)
             st.write("Your files are Processed. You set to ask questions!")
 
-    st.header("Chat with Multiple PDFs using DeciLM-6b and LangChain")
+    st.header("Chat with Multiple PDFs using DeciLM-6b-instruct LLM")
 
     # Query side
     query = st.text_input(label="Type your question based on the PDFs",
